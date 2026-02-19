@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  phone         String?
+  avatar        String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile       Profile?
+  products      Product[]
+  venues        Venue[]
+  properties    Property[]
+  kitchens      Kitchen[]
+  houseHelps    HouseHelp[]
+  bookings      Booking[]
+  orders        Order[]
+  reviews       Review[]
+  payments      Payment[]
+}
+
+enum Role {
+  ADMIN
+  VENDOR
+  USER
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio       String?
+  location  String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  images      String[]
+  category    String
+  stock       Int
+  vendorId    String
+  vendor      User     @relation(fields: [vendorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  arModelUrl  String?
+  orders      OrderItem[]
+  reviews     Review[]
+}
+
+model Venue {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  price            Float
+  capacity         Int
+  location         String
+  images           String[]
+  videos           String[]
+  amenities        String[]
+  foodTypes        String[]
+  decorationTypes  String[]
+  vendorId         String
+  vendor           User     @relation(fields: [vendorId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  bookings         Booking[]
+  packages         VenuePackage[]
+}
+
+model VenuePackage {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  items       String[]
+  createdAt   DateTime @default(now())
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String
+  status      String
+  price       Float
+  area        Float?
+  bedrooms    Int?
+  bathrooms   Int?
+  location    String
+  city        String
+  state       String
+  pincode     String
+  images      String[]
+  videos      String[]
+  amenities   String[]
+  vendorId    String
+  vendor      User     @relation(fields: [vendorId], references: [id])
+  isApproved  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+}
+
+model Kitchen {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  cuisine     String[]
+  menu        Json?
+  priceRange  String?
+  location    String
+  images      String[]
+  vendorId    String
+  vendor      User     @relation(fields: [vendorId], references: [id])
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+  bookings    Booking[]
+}
+
+model HouseHelp {
+  id          String   @id @default(cuid())
+  serviceType String
+  description String?
+  experience  Int?
+  hourlyRate  Float
+  location    String
+  images      String[]
+  vendorId    String
+  vendor      User     @relation(fields: [vendorId], references: [id])
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+
+  venueId     String?
+  propertyId  String?
+  kitchenId   String?
+  houseHelpId String?
+
+  venue       Venue?        @relation(fields: [venueId], references: [id])
+  property    Property?     @relation(fields: [propertyId], references: [id])
+  kitchen     Kitchen?      @relation(fields: [kitchenId], references: [id])
+  houseHelp   HouseHelp?    @relation(fields: [houseHelpId], references: [id])
+
+  startDate   DateTime?
+  endDate     DateTime?
+  status      BookingStatus @default(PENDING)
+  totalAmount Float
+  paymentId   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+  total     Float
+  status    String
+  paymentId String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  kitchenId String?
+  kitchen   Kitchen?    @relation(fields: [kitchenId], references: [id])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  amount        Float
+  currency      String   @default("INR")
+  status        String
+  method        String
+  transactionId String?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  bookingId     String?
+  orderId       String?
+  createdAt     DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+}
