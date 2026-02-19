@@ -27,6 +27,9 @@ model User {
   orders        Order[]
   reviews       Review[]
   payments      Payment[]
+  flats            Flat[]
+  marriageGardens  MarriageGarden[]
+  restaurants      Restaurant[]
 }
 
 enum Role {
@@ -157,6 +160,73 @@ model HouseHelp {
   updatedAt   DateTime @updatedAt
 
   bookings    Booking[]
+}
+
+model Flat {
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  price            Float
+  street           String?
+  city             String
+  state            String?
+  country          String
+  zipCode          String?
+  bedrooms         Int?
+  bathrooms        Int?
+  area             Int?
+  photos           String[]
+  amenities        String[]
+  securityFeatures String[]
+  status           String   @default("PENDING")
+  hostId           String
+  host             User     @relation(fields: [hostId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model MarriageGarden {
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  price            Float
+  street           String?
+  city             String
+  state            String?
+  country          String
+  zipCode          String?
+  capacity         Int?
+  area             Int?
+  photos           String[]
+  amenities        String[]
+  securityFeatures String[]
+  status           String   @default("PENDING")
+  hostId           String
+  host             User     @relation(fields: [hostId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Restaurant {
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  price            Float
+  street           String?
+  city             String
+  state            String?
+  country          String
+  zipCode          String?
+  cuisine          String?
+  seatingCapacity  Int?
+  photos           String[]
+  amenities        String[]
+  securityFeatures String[]
+  status           String   @default("PENDING")
+  hostId           String
+  host             User     @relation(fields: [hostId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Booking {
